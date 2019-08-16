@@ -66,7 +66,6 @@ const MotionDetector = () => {
 
   useInterval(
     () => {
-      setIsMouse(false);
       if (n >= 100) {
         setN(20);
       } else {
@@ -75,6 +74,14 @@ const MotionDetector = () => {
     },
     isAnimating ? 100 : null
   );
+
+  useEffect(() => {
+    if (isAnimating) {
+      setIsMouse(false);
+    } else {
+      setIsMouse(true);
+    }
+  }, [isAnimating]);
 
   // the logic stuff
   const [webcamRef, setWebcamRef] = useState();
