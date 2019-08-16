@@ -19,8 +19,8 @@
 }
 
 .canvasOut {
-  filter: grayscale(1) contrast(1) brightness(5) invert(1);
+  filter: grayscale(1) contrast(5) brightness(5) invert(1);
 }
 .canvasOutInverted {
-  filter: grayscale(1) contrast(1) brightness(5);
+  filter: grayscale(1) contrast(5) brightness(5);
 }

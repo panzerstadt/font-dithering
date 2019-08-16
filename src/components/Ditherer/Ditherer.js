@@ -53,7 +53,6 @@ const MotionDetector = () => {
     false
   );
   const [isAnimating, setIsAnimating] = useBooleanKnob("animate", false);
-
   const [isInverted, setIsInverted] = useBooleanKnob("invert", false);
   const [isColor, setIsColor] = useBooleanKnob("color mode (original)", false);
 
@@ -64,6 +63,18 @@ const MotionDetector = () => {
 
   useLog("Font Size", fontSize);
   useLog("pixel sample size", (isMouse ? timeMachinePixel : n) / 10);
+
+  useInterval(
+    () => {
+      setIsMouse(false);
+      if (n >= 100) {
+        setN(10);
+      } else {
+        setN(p => p + 1);
+      }
+    },
+    isAnimating ? 100 : null
+  );
 
   // the logic stuff
   const [webcamRef, setWebcamRef] = useState();
@@ -87,7 +98,15 @@ const MotionDetector = () => {
     ctx.fillText(text, 20, fontSize);
 
     //pixellate(ctx, sampleSize, w, h);
-    const data = ctx.getImageData(0, 0, w, h).data;
+    let data, sourceBuffer32;
+    if (isColor) {
+      data = ctx.getImageData(0, 0, w, h).data;
+    } else {
+      sourceBuffer32 = new Uint32Array(
+        ctx.getImageData(0, 0, w, h).data.buffer
+      );
+    }
+
     !debug && ctx.clearRect(0, 0, w, h);
 
     // let dataExists = {};
@@ -102,22 +121,32 @@ const MotionDetector = () => {
         // and alpha values, so each pixel takes up four values
         // in the array
 
-        var pos = y * (w * 4) + x * 4 - 1;
-        // this is the right formula
-        // ref: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
+        let r, g, b, pos;
+        if (isColor) {
+          sourceBuffer32 = [];
+          pos = y * (w * 4) + x * 4 - 1;
+          // this is the right formula
+          // ref: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
 
-        //var pos = (x + y * w) * 4;
-        // this is the wrong one
-        // ref: https://hackernoon.com/creating-a-pixelation-filter-for-creative-coding-fc6dc1d728b2
+          //var pos = (x + y * w) * 4;
+          // this is the wrong one
+          // ref: https://hackernoon.com/creating-a-pixelation-filter-for-creative-coding-fc6dc1d728b2
 
-        const r = data[pos];
-        const g = data[pos + 1];
-        const b = data[pos + 2];
-        const a = data[pos + 3];
+          r = data[pos];
+          g = data[pos + 1];
+          b = data[pos + 2];
+        } else {
+          data = [];
+          pos = y * w + x;
+          // this is the sourcebuffer version
+
+          r = sourceBuffer32[pos] >> 0 && 0xff;
+          g = sourceBuffer32[pos] >> 8 && 0xff;
+          b = sourceBuffer32[pos] >> 16 && 0xff;
+        }
 
         ctx.fillStyle = rgb(r, g, b);
-        // console.log("pixel size: ", x, y, sampleSize);
-        !debug && ctx.fillRect(x, y, sampleSize, sampleSize);
+        !debug && ctx.centreFillRect(x, y, sampleSize, sampleSize);
       }
     }
   };
@@ -151,17 +180,6 @@ const MotionDetector = () => {
       }
     }
   };
-
-  useInterval(
-    () => {
-      if (n >= 100) {
-        setN(10);
-      } else {
-        setN(p => p + 1);
-      }
-    },
-    isAnimating ? 1000 : null
-  );
 
   return (
     <div className={styles.container}>

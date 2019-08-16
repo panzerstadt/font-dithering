@@ -8,7 +8,7 @@ import Dither from "./components/Ditherer";
 function App() {
   return (
     <div className="App">
-      <h1>Font Ditherer</h1>
+      <h1>Font Ditherer 5000</h1>
       <Dither />
     </div>
   );
