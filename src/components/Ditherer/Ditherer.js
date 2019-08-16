@@ -44,7 +44,7 @@ const MotionDetector = () => {
   });
   const [isMouse, setIsMouse] = useBooleanKnob("mouse sampling", true);
   const [n, setN] = useRangeKnob("manual sampling", {
-    initialValue: 10,
+    initialValue: 20,
     min: MIN_PIXEL,
     max: MAX_PIXEL
   });
@@ -68,7 +68,7 @@ const MotionDetector = () => {
     () => {
       setIsMouse(false);
       if (n >= 100) {
-        setN(10);
+        setN(20);
       } else {
         setN(p => p + 1);
       }
