@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.canvasContainer {
+  width: fit-content;
+  box-shadow: 1px 2px 12px rgba(0, 0, 0, 0.123);
+}
+
+.canvasColorOut {
+  filter: invert(1);
+}
+
+.canvasColorOutInverted {
+  filter: invert(0);
+}
+
+.canvasOut {
+  filter: grayscale(1) contrast(1) brightness(5) invert(1);
+}
+.canvasOutInverted {
+  filter: grayscale(1) contrast(1) brightness(5);
+}
