@@ -2,100 +2,38 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Spring } from "react-spring/renderprops";
 
-// retoggle doesn't build properly for now (0.3.0)
-import {
-  Inspector,
-  useRangeKnob,
-  useBooleanKnob,
-  useLog,
-  useTimeMachine,
-  useTextKnob,
-  useSelectKnob
-} from "retoggle";
-
-import Webcam from "./components/Camera";
 import Canvas from "./components/Canvas";
 import { rgb, remap } from "./components/Pixellation";
-import useInterval from "../utils/useInterval";
 import useMousePos from "../utils/useMousePos";
 
-import styles from "./Ditherer.module.css";
+import styles from "./Pixellator.module.css";
 
-const MIN_PIXEL = 10;
-const MAX_PIXEL = 200;
+const fontFamily = "Lexend Deca";
+const isColor = false;
+const isInverted = false;
+const isSpringy = true;
 
-const Ditherer = () => {
+const Ditherer = ({ children, fontSize = 90, minSize = 10, maxSize = 100 }) => {
   // mouse driven events
   const mousePos = useMousePos();
   const mousePosSample = Math.max(
-    Math.round(remap(mousePos.x, 0, window.innerWidth, MIN_PIXEL, MAX_PIXEL)),
+    Math.round(remap(mousePos.x, 0, window.innerWidth, minSize, maxSize)),
     10
   ); // should not go below 10
 
-  // knobs
-  const [text, setText] = useTextKnob("Input Text", "lorem ipsum");
-  const [fontFamily, setFontFamily] = useSelectKnob(
-    "Font Family",
-    ["Arial", "Montserrat", "Open Sans", "Roboto", "Lexend Deca"],
-    "Arial"
-  );
-  const [fontSize, setFontSize] = useRangeKnob("Font Size", {
-    initialValue: 90,
-    min: 30,
-    max: 300
-  });
-  const [isMouse, setIsMouse] = useBooleanKnob("mouse sampling", true);
-  const [sliderSample, setSliderSample] = useRangeKnob("manual sampling", {
-    initialValue: 20,
-    min: MIN_PIXEL,
-    max: MAX_PIXEL
-  });
-  const [isFloat, setIsFloat] = useBooleanKnob(
-    "dither on decimal points",
-    false
-  );
-  const [isSpringy, setIsSpringy] = useBooleanKnob("springy values", false);
-  const [isAnimating, setIsAnimating] = useBooleanKnob("animate", false);
-  const [isInverted, setIsInverted] = useBooleanKnob("invert", false);
-  const [isColor, setIsColor] = useBooleanKnob("color mode (original)", false);
-
   // input value / 10 in order to work with retoggle sliders
-  let sample = isMouse ? mousePosSample / 10 : sliderSample / 10;
-  sample = isFloat ? sample : Math.round(sample);
-
-  useLog("Font Size", fontSize);
-
-  useInterval(
-    () => {
-      if (sliderSample >= 100) {
-        setSliderSample(20);
-      } else {
-        setSliderSample(p => p + 1);
-      }
-    },
-    isAnimating ? 100 : null
-  );
-
-  useEffect(() => {
-    if (isAnimating) {
-      setIsMouse(false);
-    } else {
-      setIsMouse(true);
-    }
-  }, [isAnimating]);
+  let sample = Math.round(mousePosSample / 10);
 
   // the logic stuff
-  const [webcamRef, setWebcamRef] = useState(null);
   const [textRef, setTextRef] = useState(null);
   const [ctx, setCtx] = useState();
-  const [ctxOriginal, setCtxOriginal] = useState();
 
   const drawPixelatedText = (ctx, e, sampleSize, debug) => {
     // only works for sample sizes at .5 increments !?
     // when reading text, shift sampling by .5
     let text = e.innerHTML;
 
-    let h = Math.max(fontSize * 1.5, 100);
+    let h = fontSize * 1.5;
     let w = 640;
 
     ctx.canvas.height = h;
@@ -160,19 +98,12 @@ const Ditherer = () => {
   // value interpolation with react-spring
   const [interpolatedSample, setInterpolatedSample] = useState(100);
 
-  const sampleTrace = useTimeMachine(
-    "samples",
-    isSpringy ? Number(interpolatedSample.toFixed(1)) : sample
-  );
-
-  useLog("pixel sample size", sampleTrace);
-
   useEffect(() => {
     requestAnimationFrame(() => {
-      textRef && drawPixelatedText(ctx, textRef, sampleTrace);
-      textRef && drawPixelatedText(ctxOriginal, textRef, 100, true);
+      textRef &&
+        drawPixelatedText(ctx, textRef, Number(interpolatedSample.toFixed(1)));
     });
-  }, [textRef, text, fontSize, fontFamily, isInverted, sampleTrace, isFloat]);
+  }, [textRef, children, fontSize, fontFamily, interpolatedSample]);
 
   const variants = {
     hidden: {
@@ -190,8 +121,6 @@ const Ditherer = () => {
 
   return (
     <div className={styles.container}>
-      <Inspector usePortal={true} />
-      <br />
       <motion.div
         className={styles.canvasContainer}
         initial="hidden"
@@ -218,7 +147,6 @@ const Ditherer = () => {
                   : styles.canvasOut
               }
               onContext={setCtx}
-              mirrored={webcamRef ? true : false}
             />
           </>
         ) : (
@@ -233,27 +161,11 @@ const Ditherer = () => {
                 : styles.canvasOut
             }
             onContext={setCtx}
-            mirrored={webcamRef ? true : false}
           />
         )}
       </motion.div>
-      <br />
-      <motion.div
-        className={styles.canvasContainer}
-        initial="hidden"
-        animate="visible"
-        variants={variants}
-      >
-        <Canvas
-          className={styles.canvas}
-          onContext={setCtxOriginal}
-          mirrored={webcamRef ? true : false}
-        />
-      </motion.div>
-
-      {/* <Webcam onRef={setWebcamRef} hide /> */}
       <h1 ref={setTextRef} style={{ display: "none" }}>
-        {text}
+        {children}
       </h1>
     </div>
   );

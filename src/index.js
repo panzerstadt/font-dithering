@@ -3,12 +3,12 @@ import ReactDOM from "react-dom";
 
 import "./styles.css";
 
-import Dither from "./components/Ditherer";
+import Dither, { Pixellator } from "./components/Ditherer";
 
 function App() {
   return (
     <div className="App">
-      <h1>Font Ditherer 5000</h1>
+      <Pixellator fontSize={50}>Pixellate</Pixellator>
       <Dither />
     </div>
   );
