@@ -33,7 +33,7 @@ const Ditherer = () => {
   ); // should not go below 10
 
   // knobs
-  const [text, setText] = useTextKnob("Input Text", "lorem ipsum");
+  const [text, setText] = useTextKnob("Input Text", "type anything");
   const [fontFamily, setFontFamily] = useSelectKnob(
     "Font Family",
     ["Arial", "Montserrat", "Open Sans", "Roboto", "Lexend Deca"],

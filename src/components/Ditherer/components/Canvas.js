@@ -13,7 +13,7 @@ const Canvas = ({ onContext, contextType = "2d", mirrored, ...rest }) => {
 
       onContext(ctx);
     }
-  }, [canvasRef]);
+  }, [canvasRef, onContext, contextType]);
 
   return (
     <canvas

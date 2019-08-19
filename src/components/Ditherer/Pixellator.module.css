@@ -10,7 +10,7 @@
 }
 
 .canvasColorOut {
-  filter: invert(1);
+  filter: contrast(3) brightness(2) invert(1) hue-rotate(180deg);
 }
 
 .canvasColorOutInverted {
