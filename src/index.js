@@ -1,10 +1,29 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
+import Helmet from "react-helmet";
 
 import "./index.css";
 
 import useInterval from "./components/utils/useInterval";
 import Dither, { Pixellator } from "./components/Ditherer";
+
+const FontFix = () => {
+  const isDev = process.env.REACT_APP_DEV ? true : false;
+
+  return isDev ? (
+    <Helmet>
+      <base href="/" />
+      <script type="text/javascript">var customPath = "/fonts";</script>
+      <script type="text/javascript" src="/fonts/webfonts.js" />
+    </Helmet>
+  ) : (
+    <Helmet>
+      <base href="/build/" />
+      <script type="text/javascript">var customPath = "/build/fonts";</script>
+      <script type="text/javascript" src="/build/fonts/webfonts.js" />
+    </Helmet>
+  );
+};
 
 function App() {
   const [pixelSize, setPixelSize] = useState(2);
@@ -16,9 +35,15 @@ function App() {
 
   return (
     <div className="App">
+      <FontFix />
       <Pixellator fontSize={60} pixelSize={pixelSize} springy color>
         Pixellate
       </Pixellator>
+
+      <br />
+      <Dither />
+      <br />
+
       <Pixellator fontSize={fontSize} pixelSize={5}>
         any font size.
       </Pixellator>
@@ -34,9 +59,6 @@ function App() {
           such nice color
         </Pixellator>
       </div>
-      <br />
-      <Dither />
-      <br />
     </div>
   );
 }

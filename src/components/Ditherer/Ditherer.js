@@ -36,13 +36,26 @@ const Ditherer = () => {
   const [text, setText] = useTextKnob("Input Text", "type anything");
   const [fontFamily, setFontFamily] = useSelectKnob(
     "Font Family",
-    ["Arial", "Montserrat", "Open Sans", "Roboto", "Lexend Deca"],
+    [
+      "Arial",
+      "Montserrat",
+      "Open Sans",
+      "Roboto",
+      "Lexend Deca",
+      "HelveticaNeueLTPro-Roman",
+      "HelveticaNeueLTPro-Bd"
+    ],
     "Arial"
   );
   const [fontSize, setFontSize] = useRangeKnob("Font Size", {
     initialValue: 90,
     min: 30,
     max: 300
+  });
+  const [letterSpacing, setLetterSpacing] = useRangeKnob("Letter Spacing", {
+    initialValue: 2,
+    min: 1,
+    max: 10
   });
   const [isMouse, setIsMouse] = useBooleanKnob("mouse sampling", true);
   const [sliderSample, setSliderSample] = useRangeKnob("manual sampling", {
@@ -172,7 +185,16 @@ const Ditherer = () => {
       textRef && drawPixelatedText(ctx, textRef, sampleTrace);
       textRef && drawPixelatedText(ctxOriginal, textRef, 100, true);
     });
-  }, [textRef, text, fontSize, fontFamily, isInverted, sampleTrace, isFloat]);
+  }, [
+    textRef,
+    text,
+    fontSize,
+    fontFamily,
+    letterSpacing,
+    isInverted,
+    sampleTrace,
+    isFloat
+  ]);
 
   const variants = {
     hidden: {
@@ -218,6 +240,7 @@ const Ditherer = () => {
                   : styles.canvasOut
               }
               onContext={setCtx}
+              letterSpacing={letterSpacing}
               mirrored={webcamRef ? true : false}
             />
           </>
@@ -233,6 +256,7 @@ const Ditherer = () => {
                 : styles.canvasOut
             }
             onContext={setCtx}
+            letterSpacing={letterSpacing}
             mirrored={webcamRef ? true : false}
           />
         )}
@@ -247,6 +271,7 @@ const Ditherer = () => {
         <Canvas
           className={styles.canvas}
           onContext={setCtxOriginal}
+          letterSpacing={letterSpacing}
           mirrored={webcamRef ? true : false}
         />
       </motion.div>
