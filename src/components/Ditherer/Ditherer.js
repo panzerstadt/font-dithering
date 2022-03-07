@@ -13,7 +13,7 @@ import {
   useSelectKnob
 } from "retoggle";
 
-import Webcam from "./components/Camera";
+// import Webcam from "./components/Camera";
 import Canvas from "./components/Canvas";
 import { rgb, remap } from "./components/Pixellation";
 import useInterval from "../utils/useInterval";
@@ -33,8 +33,8 @@ const Ditherer = () => {
   ); // should not go below 10
 
   // knobs
-  const [text, setText] = useTextKnob("Input Text", "type anything");
-  const [fontFamily, setFontFamily] = useSelectKnob(
+  const [text] = useTextKnob("Input Text", "type anything");
+  const [fontFamily] = useSelectKnob(
     "Font Family",
     [
       "Arial",
@@ -47,12 +47,12 @@ const Ditherer = () => {
     ],
     "Arial"
   );
-  const [fontSize, setFontSize] = useRangeKnob("Font Size", {
+  const [fontSize] = useRangeKnob("Font Size", {
     initialValue: 90,
     min: 30,
     max: 300
   });
-  const [letterSpacing, setLetterSpacing] = useRangeKnob("Letter Spacing", {
+  const [letterSpacing] = useRangeKnob("Letter Spacing", {
     initialValue: 2,
     min: 1,
     max: 10
@@ -63,14 +63,14 @@ const Ditherer = () => {
     min: MIN_PIXEL,
     max: MAX_PIXEL
   });
-  const [isFloat, setIsFloat] = useBooleanKnob(
+  const [isFloat] = useBooleanKnob(
     "dither on decimal points",
     false
   );
-  const [isSpringy, setIsSpringy] = useBooleanKnob("springy values", false);
-  const [isAnimating, setIsAnimating] = useBooleanKnob("animate", false);
-  const [isInverted, setIsInverted] = useBooleanKnob("invert", false);
-  const [isColor, setIsColor] = useBooleanKnob("color mode (original)", false);
+  const [isSpringy] = useBooleanKnob("springy values", false);
+  const [isAnimating] = useBooleanKnob("animate", false);
+  const [isInverted] = useBooleanKnob("invert", false);
+  const [isColor] = useBooleanKnob("color mode (original)", false);
 
   // input value / 10 in order to work with retoggle sliders
   let sample = isMouse ? mousePosSample / 10 : sliderSample / 10;
@@ -95,80 +95,15 @@ const Ditherer = () => {
     } else {
       setIsMouse(true);
     }
-  }, [isAnimating]);
+  }, [isAnimating, setIsMouse]);
 
   // the logic stuff
-  const [webcamRef, setWebcamRef] = useState(null);
+  const [webcamRef] = useState(null);
   const [textRef, setTextRef] = useState(null);
   const [ctx, setCtx] = useState();
   const [ctxOriginal, setCtxOriginal] = useState();
 
-  const drawPixelatedText = (ctx, e, sampleSize, debug) => {
-    // only works for sample sizes at .5 increments !?
-    // when reading text, shift sampling by .5
-    let text = e.innerHTML;
 
-    let h = Math.max(fontSize * 1.5, 100);
-    let w = 640;
-
-    ctx.canvas.height = h;
-    ctx.canvas.width = w;
-
-    // if the font is too small, it gets lost
-    ctx.font = `${fontSize}px ${fontFamily}`;
-    ctx.fillText(text, 20, fontSize);
-
-    //pixellate(ctx, sampleSize, w, h);
-    let data, sourceBuffer32;
-    if (isColor) {
-      data = ctx.getImageData(0, 0, w, h).data;
-    } else {
-      sourceBuffer32 = new Uint32Array(
-        ctx.getImageData(0, 0, w, h).data.buffer
-      );
-    }
-
-    !debug && ctx.clearRect(0, 0, w, h);
-
-    // let dataExists = {};
-    // Array.from(data).map((v, i) => v > 0 && (dataExists[i] = v));
-    // console.log(dataExists);
-
-    for (let y = 0; y < h; y += sampleSize) {
-      for (let x = 0; x < w; x += sampleSize) {
-        // the data array is a continuous array of red, blue, green
-        // and alpha values, so each pixel takes up four values
-        // in the array
-
-        let r, g, b, pos;
-        if (isColor) {
-          sourceBuffer32 = [];
-          pos = y * (w * 4) + x * 4 - 1;
-          // this is the right formula
-          // ref: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
-
-          //var pos = (x + y * w) * 4;
-          // this is the wrong one
-          // ref: https://hackernoon.com/creating-a-pixelation-filter-for-creative-coding-fc6dc1d728b2
-
-          r = data[pos];
-          g = data[pos + 1];
-          b = data[pos + 2];
-        } else {
-          data = [];
-          pos = y * w + x;
-          // this is the sourcebuffer version
-
-          r = sourceBuffer32[pos] >> 0 && 0xff;
-          g = sourceBuffer32[pos] >> 8 && 0xff;
-          b = sourceBuffer32[pos] >> 16 && 0xff;
-        }
-
-        ctx.fillStyle = rgb(r, g, b);
-        !debug && ctx.centreFillRect(x, y, sampleSize, sampleSize);
-      }
-    }
-  };
 
   // value interpolation with react-spring
   const [interpolatedSample, setInterpolatedSample] = useState(100);
@@ -181,6 +116,73 @@ const Ditherer = () => {
   useLog("pixel sample size", sampleTrace);
 
   useEffect(() => {
+    const drawPixelatedText = (ctx, e, sampleSize, debug) => {
+      // only works for sample sizes at .5 increments !?
+      // when reading text, shift sampling by .5
+      let text = e.innerHTML;
+
+      let h = Math.max(fontSize * 1.5, 100);
+      let w = 640;
+
+      ctx.canvas.height = h;
+      ctx.canvas.width = w;
+
+      // if the font is too small, it gets lost
+      ctx.font = `${fontSize}px ${fontFamily}`;
+      ctx.fillText(text, 20, fontSize);
+
+      //pixellate(ctx, sampleSize, w, h);
+      let data, sourceBuffer32;
+      if (isColor) {
+        data = ctx.getImageData(0, 0, w, h).data;
+      } else {
+        sourceBuffer32 = new Uint32Array(
+          ctx.getImageData(0, 0, w, h).data.buffer
+        );
+      }
+
+      !debug && ctx.clearRect(0, 0, w, h);
+
+      // let dataExists = {};
+      // Array.from(data).map((v, i) => v > 0 && (dataExists[i] = v));
+      // console.log(dataExists);
+
+      for (let y = 0; y < h; y += sampleSize) {
+        for (let x = 0; x < w; x += sampleSize) {
+          // the data array is a continuous array of red, blue, green
+          // and alpha values, so each pixel takes up four values
+          // in the array
+
+          let r, g, b, pos;
+          if (isColor) {
+            sourceBuffer32 = [];
+            pos = y * (w * 4) + x * 4 - 1;
+            // this is the right formula
+            // ref: https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Pixel_manipulation_with_canvas
+
+            //var pos = (x + y * w) * 4;
+            // this is the wrong one
+            // ref: https://hackernoon.com/creating-a-pixelation-filter-for-creative-coding-fc6dc1d728b2
+
+            r = data[pos];
+            g = data[pos + 1];
+            b = data[pos + 2];
+          } else {
+            data = [];
+            pos = y * w + x;
+            // this is the sourcebuffer version
+
+            r = sourceBuffer32[pos] >> 0 && 0xff;
+            g = sourceBuffer32[pos] >> 8 && 0xff;
+            b = sourceBuffer32[pos] >> 16 && 0xff;
+          }
+
+          ctx.fillStyle = rgb(r, g, b);
+          !debug && ctx.centreFillRect(x, y, sampleSize, sampleSize);
+        }
+      }
+    };
+
     requestAnimationFrame(() => {
       textRef && drawPixelatedText(ctx, textRef, sampleTrace);
       textRef && drawPixelatedText(ctxOriginal, textRef, 100, true);
@@ -193,7 +195,10 @@ const Ditherer = () => {
     letterSpacing,
     isInverted,
     sampleTrace,
-    isFloat
+    isFloat,
+    ctx,
+    ctxOriginal,
+    isColor
   ]);
 
   const variants = {
@@ -236,8 +241,8 @@ const Ditherer = () => {
                     ? styles.canvasColorOutInverted
                     : styles.canvasOutInverted
                   : isColor
-                  ? styles.canvasColorOut
-                  : styles.canvasOut
+                    ? styles.canvasColorOut
+                    : styles.canvasOut
               }
               onContext={setCtx}
               letterSpacing={letterSpacing}
@@ -252,8 +257,8 @@ const Ditherer = () => {
                   ? styles.canvasColorOutInverted
                   : styles.canvasOutInverted
                 : isColor
-                ? styles.canvasColorOut
-                : styles.canvasOut
+                  ? styles.canvasColorOut
+                  : styles.canvasOut
             }
             onContext={setCtx}
             letterSpacing={letterSpacing}
